@@ -68,6 +68,11 @@ th{font-size:11.5px;letter-spacing:.06em;color:var(--ink3);font-weight:700;borde
 .fb span{flex:1 1 100%}
 .fb a{text-decoration:none;border:1px solid var(--line);border-radius:99px;padding:5px 13px;color:var(--ink);font-size:13px}
 .fb a.k{background:#fee500;color:#191919;border-color:#fee500;font-weight:700}
+.tm{color:var(--ac);border-bottom:1px dotted var(--ac);cursor:pointer}
+#tip{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(560px,calc(100% - 24px));background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:16px 18px;z-index:80}
+#tip .w{font-weight:700;font-size:16px;color:var(--ink)}#tip .al{font-size:12.5px;color:var(--ink3);margin-left:8px}
+#tip p{font-size:14.5px;margin:6px 0 0}#tip .x{position:absolute;top:8px;right:10px;background:none;border:0;font-size:20px;color:var(--ink3);cursor:pointer;padding:4px 8px}
+#tip a{font-size:13px;display:inline-block;margin-top:8px}
 footer{border-top:1px solid var(--line);margin-top:56px;padding-top:20px;font-size:12.5px;color:var(--ink3)}
 footer a{color:var(--ink3)}
 #dsearch{width:100%;font:inherit;font-size:16px;padding:13px 16px;border:1.5px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);margin:6px 0 4px}
@@ -127,6 +132,18 @@ const CTA='<div class="cta"><h3>직접 봐야 정확합니다</h3><p>두상과 �
 const KAKAO='http://pf.kakao.com/_xlcnvX/chat';
 const FORM='https://docs.google.com/forms/d/e/1FAIpQLSfzxKgujMF-THdLPzayYs5qCYlthOUVSnEpKEnwEASXmBqEpA/viewform?usp=pp_url';
 const FB=pn=>{const u=t=>FORM+'&entry.582479839='+encodeURIComponent(t)+'&entry.1647552294='+encodeURIComponent(pn);return '<div class="fb"><span>이 페이지 내용이 궁금하거나 틀린 게 있나요?</span><a href="'+u('궁금해요')+'" target="_blank" rel="noopener">궁금해요</a><a href="'+u('틀렸어요')+'" target="_blank" rel="noopener">틀렸어요</a><a class="k" href="'+KAKAO+'" target="_blank" rel="noopener">카톡 상담</a></div>'};
+const TM={};W.forEach((w,i)=>[w.w,w.al].join('·').split(/[·,\/]/).map(t=>t.trim()).filter(Boolean).forEach(t=>{if(!(t in TM))TM[t]=i}));
+const TMRE=new RegExp(Object.keys(TM).sort((a,b)=>b.length-a.length).map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g');
+function linkTerms(root){if(!root)return;const used=new Set(),nodes=[],tw=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement.closest('a,h1,h2,h3,h4,.tm')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
+  while(tw.nextNode())nodes.push(tw.currentNode);
+  nodes.forEach(n=>{const t=n.nodeValue;let last=0,out=null;t.replace(TMRE,(m,o)=>{const i=TM[m];if(used.has(i))return m;used.add(i);out=out||document.createDocumentFragment();out.append(t.slice(last,o));const sp=document.createElement('span');sp.className='tm';sp.dataset.i=i;sp.tabIndex=0;sp.textContent=m;out.append(sp);last=o+m.length;return m});
+    if(out){out.append(t.slice(last));n.replaceWith(out)}});
+}
+function showTip(i){const w=W[i];let t=document.getElementById('tip');if(!t){t=document.createElement('div');t.id='tip';t.setAttribute('role','dialog');document.body.append(t)}
+  t.innerHTML='<button class="x" type="button" aria-label="닫기">×</button><span class="w">'+esc(w.w)+'</span>'+(w.al?'<span class="al">'+esc(w.al)+'</span>':'')+'<p>'+esc(w.sh)+'</p>'+(w.de?'<p>'+esc(w.de)+'</p>':'')+'<a href="#dict">미용언어 사전 전체 보기 →</a>';
+  t.hidden=false;t.querySelector('.x').onclick=()=>t.hidden=true;t.querySelector('a').onclick=()=>t.hidden=true;}
+document.addEventListener('click',e=>{const s=e.target.closest('.tm');if(s){showTip(+s.dataset.i);return}const t=document.getElementById('tip');if(t&&!t.hidden&&!e.target.closest('#tip'))t.hidden=true});
+document.addEventListener('keydown',e=>{const s=e.target.closest&&e.target.closest('.tm');if(s&&(e.key==='Enter'||e.key===' ')){e.preventDefault();showTip(+s.dataset.i)}if(e.key==='Escape'){const t=document.getElementById('tip');if(t)t.hidden=true}});
 const reviewing=x=>x.p['검수']&&x.p['검수']!=='검수 완료';
 
 /* ───── 진단: 노션 DB의 적합·비적합(28개 고정 어휘)으로 바로 매칭 ───── */
@@ -229,7 +246,8 @@ function route(){
   else if(hs==='dict'){h=dict();nav='dict';pn='미용언어 사전'}
   else if(hs==='find'){h='<div id="intro"><h1>내 머리 찾기</h1><p class="lead">9개만 고르면 됩니다.</p></div>'+quizHTML();nav='find';pn='내 머리 찾기'}
   else h=home();
-  app.innerHTML=h+FB(pn);
+  app.innerHTML=h+FB(pn);const tp=document.getElementById('tip');if(tp)tp.hidden=true;
+  if(m)linkTerms(app.querySelector('.body'));
   document.querySelectorAll('.nav a[data-nav]').forEach(a=>a.classList.toggle('on',a.dataset.nav===nav));
   if(document.getElementById('quiz')){step=0;ans={};qrender()}
   if(hs==='dict'){const s=document.getElementById('dsearch');s.oninput=()=>dictRender(s.value);dictRender('')}
