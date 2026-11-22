@@ -64,6 +64,10 @@ th{font-size:11.5px;letter-spacing:.06em;color:var(--ink3);font-weight:700;borde
 .tabs a.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .back{display:inline-block;font-size:13.5px;color:var(--ink3);text-decoration:none;margin-bottom:14px}
 .rel{margin-top:30px}
+.fb{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:28px 0 0;padding:14px 16px;border:1px solid var(--line);border-radius:8px;background:var(--card);font-size:13.5px;color:var(--ink2)}
+.fb span{flex:1 1 100%}
+.fb a{text-decoration:none;border:1px solid var(--line);border-radius:99px;padding:5px 13px;color:var(--ink);font-size:13px}
+.fb a.k{background:#fee500;color:#191919;border-color:#fee500;font-weight:700}
 footer{border-top:1px solid var(--line);margin-top:56px;padding-top:20px;font-size:12.5px;color:var(--ink3)}
 footer a{color:var(--ink3)}
 #dsearch{width:100%;font:inherit;font-size:16px;padding:13px 16px;border:1.5px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);margin:6px 0 4px}
@@ -104,6 +108,7 @@ footer a{color:var(--ink3)}
 <div class="nav"><div class="in gx">
 <a class="bd" href="#home">남자머리박사</a>
 <a href="#find" data-nav="find">내 머리 찾기</a><a href="#styles" data-nav="book">대백과</a><a href="#dict" data-nav="dict">미용언어</a>
+<a href="http://pf.kakao.com/_xlcnvX/chat" target="_blank" rel="noopener">문의</a>
 <a class="bk" href="https://map.naver.com/p/search/%EA%BE%B8%EC%95%84%ED%8A%B8%ED%97%A4%EC%96%B4%20%EC%96%91%EC%9E%AC%EC%97%AD%EC%A0%90">예약</a>
 </div></div>
 <div class="wrap gx"><main id="app"></main>
@@ -118,7 +123,10 @@ const ALL={};S.forEach(x=>ALL[x.id]={k:'s',x});T.forEach(x=>ALL[x.id]={k:'t',x})
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const link=id=>{const a=ALL[id];return a?'<a class="cardl" href="#'+a.k+'_'+id+'"><span class="n">'+esc(a.x.n)+'</span></a>':''};
 const app=document.getElementById('app');
-const CTA='<div class="cta"><h3>직접 봐야 정확합니다</h3><p>두상과 모질은 사진으로도 한계가 있습니다. 양재역 4번출구 도보 3분, 남자 머리만 하는 화강이 직접 봐 드립니다.</p><a class="btn" href="'+RESV+'">예약하기</a><a class="btn g" href="https://blog.naver.com/ohbj1111">시술 사진 보기</a></div>';
+const CTA='<div class="cta"><h3>직접 봐야 정확합니다</h3><p>두상과 모질은 사진으로도 한계가 있습니다. 양재역 4번출구 도보 3분, 남자 머리만 하는 화강이 직접 봐 드립니다.</p><a class="btn" href="'+RESV+'">예약하기</a><a class="btn g" href="http://pf.kakao.com/_xlcnvX/chat" target="_blank" rel="noopener">카톡 상담</a><a class="btn g" href="https://blog.naver.com/ohbj1111">시술 사진 보기</a></div>';
+const KAKAO='http://pf.kakao.com/_xlcnvX/chat';
+const FORM='https://docs.google.com/forms/d/e/1FAIpQLSfzxKgujMF-THdLPzayYs5qCYlthOUVSnEpKEnwEASXmBqEpA/viewform?usp=pp_url';
+const FB=pn=>{const u=t=>FORM+'&entry.582479839='+encodeURIComponent(t)+'&entry.1647552294='+encodeURIComponent(pn);return '<div class="fb"><span>이 페이지 내용이 궁금하거나 틀린 게 있나요?</span><a href="'+u('궁금해요')+'" target="_blank" rel="noopener">궁금해요</a><a href="'+u('틀렸어요')+'" target="_blank" rel="noopener">틀렸어요</a><a class="k" href="'+KAKAO+'" target="_blank" rel="noopener">카톡 상담</a></div>'};
 const reviewing=x=>x.p['검수']&&x.p['검수']!=='검수 완료';
 
 /* ───── 진단: 노션 DB의 적합·비적합(28개 고정 어휘)으로 바로 매칭 ───── */
@@ -214,14 +222,14 @@ function dictRender(qs){
   document.getElementById('dlist').innerHTML=h||'<p>찾는 말이 없습니다. 다른 표현으로 검색해 보세요.</p>';
 }
 function route(){
-  const hs=(location.hash||'#home').slice(1);let nav='',h;
+  const hs=(location.hash||'#home').slice(1);let nav='',h,pn='홈';
   const m=hs.match(/^([stpd])_([0-9a-f]+)$/);
-  if(m){h=detail(m[1],m[2]);nav='book'}
-  else if(TABS.some(t=>t[0]===hs)){h=list(hs);nav='book'}
-  else if(hs==='dict'){h=dict();nav='dict'}
-  else if(hs==='find'){h='<div id="intro"><h1>내 머리 찾기</h1><p class="lead">9개만 고르면 됩니다.</p></div>'+quizHTML();nav='find'}
+  if(m){h=detail(m[1],m[2]);nav='book';pn=ALL[m[2]]?BACK[m[1]][1]+' · '+ALL[m[2]].x.n:'대백과'}
+  else if(TABS.some(t=>t[0]===hs)){h=list(hs);nav='book';pn='대백과 '+TABS.find(t=>t[0]===hs)[1]+' 목록'}
+  else if(hs==='dict'){h=dict();nav='dict';pn='미용언어 사전'}
+  else if(hs==='find'){h='<div id="intro"><h1>내 머리 찾기</h1><p class="lead">9개만 고르면 됩니다.</p></div>'+quizHTML();nav='find';pn='내 머리 찾기'}
   else h=home();
-  app.innerHTML=h;
+  app.innerHTML=h+FB(pn);
   document.querySelectorAll('.nav a[data-nav]').forEach(a=>a.classList.toggle('on',a.dataset.nav===nav));
   if(document.getElementById('quiz')){step=0;ans={};qrender()}
   if(hs==='dict'){const s=document.getElementById('dsearch');s.oninput=()=>dictRender(s.value);dictRender('')}
